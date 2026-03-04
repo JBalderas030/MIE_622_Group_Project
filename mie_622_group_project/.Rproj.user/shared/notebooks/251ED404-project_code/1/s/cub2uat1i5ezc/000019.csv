@@ -1,0 +1,3 @@
+"0","# load the data"
+"0","pj_data <- read_xlsx(here(""data"", ""project_data.xlsx"")) # the data file is in a folder named 'data'"
+"0","head(pj_data)"

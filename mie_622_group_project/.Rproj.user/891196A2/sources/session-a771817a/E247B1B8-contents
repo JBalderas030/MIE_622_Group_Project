@@ -1,0 +1,301 @@
+---
+title: "MIE 522/622_Homework 3 Part II"
+author: "Muge Capan and James Kibiro"
+format:
+  html:
+    embed-resources: true
+    code-fold: false
+    number-sections: true
+toc: true
+toc-title: Table of contents
+toc-depth: 4
+toc-location: left
+execute: 
+  eval: false
+  echo: true
+output:
+  html_document:
+  output-file: MIE522_622_HW3_.html
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## MIE 522/622
+
+### Homework 3 Part II
+
+### Total = 5 Points
+
+### Due date = Sunday 3/1, 11:59pm
+
+INSTRUCTIONS:
+
+cancernew.csv includes data of 569 tumors analyzed in a cancer biopsy
+lab
+
+Columns:
+
+-   Area: Area of cancer in mm\^2
+
+-   Diagnosis: categorical,
+
+-   M=malignant (harmful),
+
+-   B=benign (harmless)
+
+-   Texture: Texture of the tumor, numerical
+
+-   Smoothness: Smoothness of the tumor, numerical
+
+-   Compactness: Compactness of the tumor, numerical
+
+-   Concavity: Concavity of the tumor, numerical
+
+-   ConcavePoints: Concave Points measurement on the tumor, numerical
+
+-   Symmetry: a numerical Symmetry measure
+
+-   FractalDim: fractal dimensions of the tumor, numerical
+
+Read questions carefully, complete the R code provide clear answers and
+interpretations
+
+Read data
+
+```{r}
+cancer <- read.csv("cancernew.csv", as.is=T)
+```
+
+Factorize Diagnosis (categorical variable)
+
+```{r}
+cancer$Diagnosis <- as.factor(cancer$Diagnosis) 
+```
+
+Check out the dataset
+
+```{r}
+str(cancer)
+head(cancer)
+```
+
+#### QUESTION 1 (0.5 Points).
+
+Visualize the relationship between Diagnosis (x-axis) and Area (y-axis)
+Interpret the relationship. How are the categories \[B= benign,
+M=malignant\] different? Would you use this variable as an independent
+variable in the model to predict Area? Why or why not? Explain in your
+own words.
+
+```{r}
+plot(cancer$Diagnosis,cancer$area, col="steelblue", 
+     xlab="Diagnosis", ylab="Area")
+```
+
+#### Interpretation:
+
+The relationship between diagnosis and area of cancer is not well
+explained with a univariate linear model using 'area' alone.
+
+#### QUESTION 2 (0.5 Points).
+
+Split cancer data into 70% training and 30% testing using a stratified
+random sampling using the createDataPartition() function that comes with
+caret package Explain why this approach of splitting data is better than
+completely random split. Develop an MLR to predict Area using all other
+variables as independent variables in TRAINING data Interpret model
+goodness of fit. Is this regression model a good fit for the observed
+data? Why or why not? Explain in your own words.
+
+```{r}
+library(caret)
+set.seed(123)  # DO NOT CHANGE THE SEED - for reproducibility of the random split
+index <- createDataPartition(cancer$Area, p =  0.7, list = FALSE)
+traincancer <- cancer[index, ]
+testcancer  <- cancer[-index, ]
+model_c <- lm(Area ~., data = traincancer)
+summary(model_c)
+```
+
+#### Interpretation:
+
+1.  Having a standardized data partition such as 70:30 is better than a
+    completely random split because the defined split ensures we have a
+    deliberate balance between training data and testing data thereby
+    reducing overfitting.
+
+2.  Looking at our summary, this is model is a good fit for our data.
+    Our R-squared value is very close to 1, i.e., 0.8729, which implies
+    a huge portion of the variation (87%) can be explained by the model.
+    The adjusted R-squared is also very close to 1, i.e., 0.8703, which
+    means that the model explains a huge variation in the dependent
+    variable, 'Area' around its mean.
+
+#### QUESTION 3 (0.5 Points).
+
+Interpret the coefficient estimate associated with the categorical
+variable Diagnosis in your own words based on the model summary output
+of the MLR developed in Question 2 What is the baseline category? How
+does the predicted Area of a tumor change when the diagnosis category
+changes?
+
+#### Interpretation:
+
+-   
+
+    ```         
+    (Intercept)     1764.817     96.792  18.233  < 2e-16 ***
+    DiagnosisM        11.089     22.521   0.492  0.62273  
+    ```
+
+    Since this is a multivariate linear regression, our intercept in
+    this case represents baseline category for our factorized
+    categorical variable i.e., Diagnosis, and the category it represents
+    is 'DiagnosisB'. This is the estimator for 'Area' when the diagnosis
+    is 'B' assuming all other numeric variables/ predictors are at zero
+    (0). In this case, the coefficeint for DiagnosisB is 1764.817.
+
+-   In addition, our beta_one, 'DiagnosisM' represents the value (11.089
+    mm\^2) by which our diagnosisM increases the cell area holding all
+    other variables constant.
+
+#### QUESTION 4 (0.5 Points).
+
+Apply the MLR model to a new patient to predict their tumor Area the 95%
+Confidence Interval around this predicted Area value for this patient
+with following values of this patient observed:
+
+Diagnosis= "B"
+
+Texture= 19.28
+
+Smoothness= 0.098
+
+Compactness= 0.143
+
+Concavity= 0.087
+
+ConcavePoints= 0.045
+
+Symmetry= 0.192
+
+FractalDim= 0.063
+
+```{r}
+patient1 <- data.frame(Diagnosis= "B", Texture= 19.28, Smoothness= 0.098, Compactness= 0.143, Concavity= 0.087, ConcavePoints= 0.045, Symmetry= 0.192, FractalDim= 0.063)
+
+predict(model_c, interval =  "confidence", newdata = patient1)
+
+```
+
+#### Interpretation:
+
+Predicted area value is 610.0099 mm\^2, with a 95% CI where we would
+expected the true area value by the lower and upper bounds \[572.447 ,
+647.5729\]
+
+#### QUESTION 5 (0.75 Points).
+
+Linear regression assumes residuals are normally distributed with a mean
+of 0.
+
+Check this assumption for model_c in testing data using a histogram of
+residuals and a QQ plot. Interpret the results.
+
+```{r}
+res_c <- model_c$residuals
+hist(res_c, main = "Histogram of Residuals", col="orange", breaks=20)
+qqnorm(res_c, main = "QQ Plot: Residuals versus Theoritical Normal Distribution", col = "orange")
+qqline(res_c, col = "black")
+```
+
+#### Interpretation:
+
+Many of the residuals fall within the straight line with weak deviations
+at the tails. This is an indication of data following a normal
+distribution.
+
+The histogram also shows normality in the distribution of the data - the
+visualization shows an almost perfect bell curve which signals
+normality.
+
+#### QUESTION 6 (0.75 Points).
+
+Linear regression assumes a linear relationship between the independent
+variables and the response variable Y. Check this assumption for the MLR
+model developed in question 2 (model_c) Interpret the results
+
+Residuals Plot
+
+```{r}
+model_c <- lm(Area ~., data = traincancer)
+plot(model_c, 1, col = "steelblue")
+```
+
+#### Interpretation:
+
+The residuals are randomly scattered around zero (0) which is an
+indication for linearity in the data.
+
+#### QUESTION 7 (0.75 Point).
+
+Develop a NEW MLR model in training data by using following independent
+variables: Diagnosis, Texture, Smoothness, and second, third and fourth
+degree polynomial of the Smoothness variable. Which variables have a
+statistically significant relationship to Area (Y) at the significance
+level alpha=0.05? As for Smoothness: Which polynomial degrees of
+Smoothness would you recommend keeping in the MLR? Why?
+
+```{r}
+model_poly <- lm(Area ~ Diagnosis + Texture + poly(Smoothness, 4), data = traincancer)
+summary(model_poly)
+
+```
+
+#### Interpretation:
+
+From the results, diagnosis and the 4th degree of smoothness have a
+statistically significant relationship with our dependent variable,
+'Area' as they have a p-value that is less than 0.05 (alpha)
+
+#### QUESTION 8 (0.75 Point).
+
+Create a new data object that only has the numerical independent
+variables: "Texture", "Smoothness", "Compactness", "Concavity",
+"ConcavePoints", "Symmetry", "FractalDim".
+
+Create the correlation matrix in the original dataset (cancer).
+
+Is there any evidence of collinearity? if so between which X variables?
+
+How would this result impact your decision of which X variables to
+include in the MLR? Explain your response
+
+```{r}
+# Lines 216-220
+cols <- c("Texture", "Smoothness", "Compactness", "Concavity", "ConcavePoints", "Symmetry", "FractalDim")
+newdata <-  cancer[, cols]  
+cor(newdata)
+```
+
+#### Interpretation:
+
+There is evidence of collinearity from the following variables:
+
+-   Compactness and Concavity (0.8831207)
+
+-   Compactness and ConcavePoints (0.8311350)
+
+-   Concavity and ConcavePoints (0.9213910)
+
+The problem with collinearity is it makes it difficult to separate out
+the individual effects of collinear variables on the dependent variable,
+Y. It also reduces accuracy of the estimates of coefficients leading to
+higher standard error in coefficient estimates.
+
+To solve this we can drop one of the problematic (highly correlated) X
+variables from the model, say Concavity. We can also combine the
+collinear variables together into a single predictor such as taking the
+average of standardized versions of two correlated variables, say
+Compactness and Concavity, to create a new variable)

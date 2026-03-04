@@ -1,0 +1,11 @@
+#####################################
+# MIE 522/622 
+# Group Project: Predict Students' Dropout and Academic Success
+# Authors: James Kibiro, Josh Balderas, Neelkumar Patel
+#####################################
+# libraries
+library(tidyverse)
+
+
+# load the data
+data <- read.xls(project_data.xls)
