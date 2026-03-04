@@ -1,0 +1,22 @@
+---
+title: "Predicting_Students_Dropout_and_Academic_Success"
+author: "James Kibiro, Josh Balderas, Neelkumar Patel"
+format: html
+editor: visual
+---
+
+## Predicting Students Dropout and Academic Success
+
+```{r}
+# set up the libraries
+library(tidyverse)
+library(readxl) 
+library(here) # sets path to your folder directory
+```
+
+```{r}
+# load the data
+pj_data <- read_xlsx(here("data", "project_data.xlsx")) # the data file is in a folder named 'data'
+head(pj_data)
+
+```
