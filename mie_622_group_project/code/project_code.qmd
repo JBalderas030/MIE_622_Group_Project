@@ -52,6 +52,9 @@ index <- sample(1:nrow(pj_data), 0.3 * nrow(pj_data)) # sample 30% of the data f
 training_data <- pj_data[-index, ]
 testing_data <- pj_data[index, ]
 
+model.best <- regsubsets(`Target`~., data = pj_data, nvmax =36)
+summary(model.best)
+
 # perfom forward stepwise selection
 model.fwd <- regsubsets(`Age at enrollment` ~.,data = pj_data, nvmax = 36, method = "forward") # nvmax = 36 because we have 36 independent variables
 summary(model.fwd)
