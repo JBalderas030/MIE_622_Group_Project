@@ -7,16 +7,58 @@ editor: visual
 
 ## Predicting Students Dropout and Academic Success
 
+Research Question: Does age at enrollment contribute to student academic dropout and failure in higher education?
+
 ```{r}
 # set up the libraries
 library(tidyverse)
 library(readxl) 
 library(here) # sets path to your folder directory
+library(leaps) # for variable selection methods
 ```
 
 ```{r}
 # load the data
 pj_data <- read_xlsx(here("data", "project_data.xlsx")) # the data file is in a folder named 'data'
 head(pj_data)
+str(pj_data)
+```
 
+```{r}
+summary(pj_data)
+pj_data <- na.omit(pj_data) # remove any missing values
+```
+
+```{r}
+# Factorize the categorical variables
+# 'Target' is the only categorical variable
+col <- c("Target")
+pj_data [, col] <- lapply(pj_data[, col], factor)
+str(pj_data) # confirm categorization of the column
+```
+
+For our research question, "Does age at enrollment contribute to student academic dropout and failure in higher education?", we will take 'Age at Enrollment' as the dependent (Y) variable that we can predict using the other variables as the independent variables.
+
+Let's develop a multivariate linear regression model to predict student academic performance.
+
+Since we have many independent variables, a multivariate linear regression would be ideal. We have 37 variables and therefore, we can 36 (i.e.,37-1) independent variables.
+
+To find a good model that shows this relationship between the dependent and independent variables, we will use the 'forward step wise' variable selection method to select predictor variables that will be good for our model.
+
+```{r}
+set.seed(123) # set a pseudorandom number generator
+index <- sample(1:nrow(pj_data), 0.3 * nrow(pj_data)) # sample 30% of the data for testing
+# split the data
+training_data <- pj_data[-index, ]
+testing_data <- pj_data[index, ]
+
+# perfom forward stepwise selection
+model.fwd <- regsubsets(`Age at enrollment` ~.,data = pj_data, nvmax = 36, method = "forward") # nvmax = 36 because we have 36 independent variables
+summary(model.fwd)
+```
+
+```{r}
+# Let's develop MLR models to predict student academic performance
+mlr0 <- lm(`Age at enrollment` ~ ., data = pj_data)
+summary(mlr0)
 ```
