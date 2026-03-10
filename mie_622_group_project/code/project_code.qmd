@@ -59,3 +59,36 @@ summary(model.best)
 model.fwd <- regsubsets(`Age at enrollment` ~.,data = pj_data, nvmax = 36, method = "forward") # nvmax = 36 because we have 36 independent variables
 summary(model.fwd)
 ```
+```{r}
+#Correlation Heatmap
+str(pj_data)
+cor(pj_data)
+
+
+# test code
+corr_data <- pj_data |>
+  select(
+    `Application order`,
+    `Daytime/evening attendance`,
+    `Admission grade`,
+    Displaced,
+    `Educational special needs`,
+    Debtor,
+    `Tuition fees up to date`,
+    `Age at enrollment`,
+    International,
+    `Unemployment rate`,
+    `Inflation rate`,
+    GDP
+  )
+
+cor(corr_data)
+cor_matrix <- cor(corr_data)
+diag(cor_matrix) <- NA
+
+heatmap(cor_matrix, main = "Corr. Matrix Heatmap")
+
+strong_corr <- which(abs(cor_matrix) > 0.7, arr.ind = TRUE)
+strong_corr
+
+```
