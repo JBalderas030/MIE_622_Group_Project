@@ -59,13 +59,12 @@ summary(model.best)
 model.fwd <- regsubsets(`Age at enrollment` ~.,data = pj_data, nvmax = 36, method = "forward") # nvmax = 36 because we have 36 independent variables
 summary(model.fwd)
 ```
+
+
 ```{r}
 #Correlation Heatmap
-str(pj_data)
-cor(pj_data)
+#str(pj_data)
 
-
-# test code
 corr_data <- pj_data |>
   select(
     `Application order`,
@@ -88,7 +87,52 @@ diag(cor_matrix) <- NA
 
 heatmap(cor_matrix, main = "Corr. Matrix Heatmap")
 
+corrplot(cor_matrix, method = "color", type = "upper")
+
 strong_corr <- which(abs(cor_matrix) > 0.7, arr.ind = TRUE)
 strong_corr
 
+```
+
+```{r}
+# Checking age vs target
+ggplot(pj_data, aes(x = `Age at enrollment` , fill= Target))+
+  #geom_count()
+  #geom_boxplot()
+  geom_histogram(position = "identity", alpha = 0.4, bins = 30)
+```
+
+```{r}
+pj_binned <- pj_data %>%
+  mutate(age_bin = cut(`Age at enrollment`,
+                       breaks = seq(min(`Age at enrollment`), max(`Age at enrollment`), by = 1),
+                       include.lowest = TRUE)) %>%
+  group_by(age_bin) %>%
+  summarise(
+    Dropout = mean(Target == "Dropout"),
+    Enrolled = mean(Target == "Enrolled"),
+    Graduate = mean(Target == "Graduate"),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(cols = c(Dropout, Enrolled, Graduate),
+               names_to = "Target", values_to = "Probability") %>%
+  # Add a numeric column for age using the bin midpoint
+  mutate(Age = sapply(strsplit(as.character(age_bin), ","), function(x) {
+    bounds <- gsub("\\(|\\]|\\[|\\)", "", x)
+    mean(as.numeric(unlist(strsplit(bounds, "-"))))
+  }))
+
+# Plot
+ggplot(pj_binned, aes(x = Age, y = Probability, color = Target)) +
+  geom_smooth() +
+  geom_point()+
+  labs(
+    x = "Age at enrollment",
+    y = "Probability (%)",
+    title = "Probability curves by age",
+    color = "Target"
+  ) +
+  theme_minimal()
+
+summary(pj_data$`Age at enrollment`)
 ```
